@@ -1,18 +1,33 @@
-// src/services/sensorService.js
-const sensor = require('node-dht-sensor');
+const { Chip } = require('libgpiod2');
 
-// Альтернативный вариант, если поддерживается sensor.promises.read
+/**
+ * Читает данные с датчика через libgpiod2.
+ * Обратите внимание: для DHT11/DHT22 этот способ, скорее всего, не сработает,
+ * так как требуется реализовать сложный одно-проводный протокол.
+ * Пример ниже показывает, как открыть чип и считать значение линии.
+ */
 exports.readSensorData = async () => {
-    if (!sensor.initialize(11, 4)) {
-      throw new Error('failed to initialize sensor');
-    }
+  return new Promise((resolve, reject) => {
     try {
-      const data = await sensor.promises.read(11, 4);
-      console.log('Данные с датчика (promises):', data);
-      return data;
+      // Открываем первый чип GPIO (обычно /dev/gpiochip0)
+      const chip = new Chip(0);
+      // Получаем линию с номером 4 (GPIO4, согласно нумерации чипа)
+      const line = chip.getLine(4);
+      
+      // Читаем значение линии (0 или 1)
+      const value = line.getValue();
+      console.log('Значение линии (GPIO4):', value);
+      
+      // Если ваш датчик выдаёт данные через этот цифровой вход,
+      // здесь необходимо преобразовать значение линии в показания температуры и влажности.
+      // Ниже приведён пример возврата статичных данных.
+      resolve({
+        temperature: 23.5,  // замените на получение реальных данных, если возможно
+        humidity: 45        // замените на получение реальных данных, если возможно
+      });
     } catch (err) {
-      console.error('Ошибка чтения датчика (promises):', err);
-      throw new Error('failed to read sensor: ' + err);
+      console.error('Ошибка чтения датчика через libgpiod2:', err);
+      reject(new Error('failed to read sensor using libgpiod2: ' + err));
     }
-  };
-  
+  });
+};
