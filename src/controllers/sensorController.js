@@ -1,38 +1,51 @@
+// src/controllers/sensorController.js
 const sensorService = require('../services/sensorService');
 const outdoorWeatherService = require('../services/outdoorWeatherService');
 const recommendationService = require('../services/recommendationService');
 const mlService = require('../services/mlService');
-// Если вы сохраняете в MongoDB, подключаем модель
-// const WeatherRecord = require('../model/weatherRecord');
+const WeatherRecord = require('../model/weatherRecord');
 
 exports.getSensorData = async (req, res) => {
   try {
-    // Пример: получаем внутренние данные
+    // Получаем данные с сенсора и с внешнего источника
     const sensorData = await sensorService.readSensorData();
-    // Пример: получаем данные извне (Gismeteo)
+    console.log('sensorData:', sensorData);
+
     const outdoorData = await outdoorWeatherService.getSensorData();
-    // Пример: считаем индекс комфорта
+    console.log('outdoorData:', outdoorData);
+
+    // Получаем индекс комфорта с помощью ML модели
     const comfortIndex = await mlService.predictComfort(sensorData, outdoorData);
-    // Пример: рекомендации
-    const recommendation = recommendationService.getComfortRecommendation(
-      sensorData,
-      outdoorData,
+    console.log('comfortIndex:', comfortIndex);
+
+    // Формируем рекомендации, можно адаптировать функцию рекомендаций с учетом ML
+    const recommendation = recommendationService.getComfortRecommendation(sensorData, outdoorData, comfortIndex);
+    console.log('recommendation:', recommendation);
+
+    // Создаем запись для сохранения в MongoDB
+    const newRecord = new WeatherRecord({
+      sensor: {
+        temperature: parseFloat(sensorData.temperature),
+        humidity: parseFloat(sensorData.humidity)
+      },
+      outdoor: {
+        temperature: parseFloat(outdoorData.temperature),
+        humidity: outdoorData.humidity ? parseFloat(outdoorData.humidity) : null
+      },
       comfortIndex
-    );
+    });
 
-    // Если нужно — сохраняем в БД
-    // const newRecord = new WeatherRecord({ ... });
-    // await newRecord.save();
+    await newRecord.save();
 
-    // Возвращаем JSON-ответ
     res.json({
       sensor: sensorData,
       outdoor: outdoorData,
       comfortIndex,
-      recommendation
+      recommendation,
+      message: 'Данные сохранены в MongoDB'
     });
   } catch (error) {
-    // В случае ошибки возвращаем JSON с полем error
+    console.error('Ошибка в контроллере:', error);
     res.status(500).json({ error: error.message });
   }
 };
