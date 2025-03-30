@@ -9,7 +9,16 @@ exports.readSensorData = async () => {
         if (err) {
           return reject(err);
         }
-        // Округляем значения до одного знака
+        // Выводим в консоль исходные данные для проверки
+        console.log(`Сырые данные: температура = ${temperature}, влажность = ${humidity}`);
+
+        // Если значения кажутся перепутанными, можно поменять их местами:
+        // const data = new SensorData(
+        //   humidity.toFixed(1), // предполагаемая температура
+        //   temperature.toFixed(1) // предполагаемая влажность
+        // );
+
+        // Если всё верно, оставляем порядок таким:
         const data = new SensorData(
           temperature.toFixed(1),
           humidity.toFixed(1)
