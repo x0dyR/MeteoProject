@@ -2,7 +2,7 @@
 const sensorService = require('../services/sensorService');
 const outdoorWeatherService = require('../services/outdoorWeatherService');
 const recommendationService = require('../services/recommendationService');
-const WeatherRecord = require('../models/weatherRecord');
+const WeatherRecord = require('../model/weatherRecord');
 
 exports.getSensorData = async (req, res) => {
   try {
