@@ -8,6 +8,10 @@ exports.readSensorData = async () => {
       return reject(new Error('failed to initialize sensor'));
     }
     sensor.read(11, 4, (err, temperature, humidity) => {
+      if (err) {
+        console.error('Ошибка чтения датчика:', err);
+        return reject(new Error('failed to read sensor: ' + err));
+      }
       console.log('Данные с датчика:', { temperature, humidity });
       resolve({ temperature, humidity });
     });
