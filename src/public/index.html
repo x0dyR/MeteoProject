@@ -20,13 +20,20 @@
   <div id="data"></div>
   <script>
     fetch('/sensors')
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('data').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      .then(response => response.text())
+      .then(text => {
+        console.log('Response text:', text);
+        try {
+          const data = JSON.parse(text);
+          document.getElementById('data').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        } catch(e) {
+          document.getElementById('data').innerHTML = `<p>Ошибка парсинга JSON: ${e.message}</p>`;
+        }
       })
       .catch(err => {
         document.getElementById('data').innerHTML = `<p>Ошибка получения данных: ${err}</p>`;
       });
   </script>
+  
 </body>
 </html>
