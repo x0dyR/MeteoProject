@@ -14,6 +14,6 @@ exports.readSensorData = async () => {
       }
       console.log('Данные с датчика:', { temperature, humidity });
       resolve({ temperature, humidity });
-    });
+    },3000);
   });
 };
