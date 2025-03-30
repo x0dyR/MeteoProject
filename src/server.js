@@ -1,3 +1,5 @@
+require('dotenv').config(); // Загружаем переменные окружения из .env
+
 const express = require('express');
 const mongoose = require('mongoose');
 const sensorRoute = require('./routes/sensorRoute');
@@ -5,8 +7,9 @@ const sensorRoute = require('./routes/sensorRoute');
 const app = express();
 const port = 3000;
 
-// Подключаемся к MongoDB
-mongoose.connect('mongodb://localhost:27017/meteodb', {
+// Подключаемся к MongoDB используя переменную окружения
+const mongoURI = process.env.MONGO_URI;
+mongoose.connect(mongoURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
