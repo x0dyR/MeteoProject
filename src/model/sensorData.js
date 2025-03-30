@@ -1,6 +1,7 @@
 class SensorData {
-    constructor(value) {
-      this.value = value;
+    constructor(temperature, humidity) {
+      this.temperature = temperature;
+      this.humidity = humidity;
       this.timestamp = new Date();
     }
   }
