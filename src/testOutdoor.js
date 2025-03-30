@@ -1,4 +1,5 @@
-const outdoorWeatherService = require('./src/services/outdoorWeatherService');
+// src/testOutdoor.js
+const outdoorWeatherService = require('./services/outdoorWeatherService');
 
 outdoorWeatherService.getSensorData()
   .then(data => {
