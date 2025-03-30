@@ -1,7 +1,7 @@
 // src/services/mlService.js
 const tf = require('@tensorflow/tfjs-node');
 const mongoose = require('mongoose');
-const WeatherRecord = require('../models/weatherRecord');
+const WeatherRecord = require('../model/weatherRecord');
 
 /**
  * Функция для обучения модели на исторических данных.
