@@ -2,7 +2,8 @@
 const sensorService = require('../services/sensorService');
 const outdoorWeatherService = require('../services/outdoorWeatherService');
 const recommendationService = require('../services/recommendationService');
-const WeatherRecord = require('../model/weatherRecord');
+const mlService = require('../services/mlService');
+const WeatherRecord = require('../models/weatherRecord');
 
 exports.getSensorData = async (req, res) => {
   try {
@@ -10,8 +11,11 @@ exports.getSensorData = async (req, res) => {
     const sensorData = await sensorService.readSensorData();
     const outdoorData = await outdoorWeatherService.getSensorData();
 
-    // Формируем рекомендации для комфортного уровня
-    const recommendation = recommendationService.getComfortRecommendation(sensorData, outdoorData);
+    // Получаем индекс комфорта с помощью ML модели
+    const comfortIndex = await mlService.predictComfort(sensorData, outdoorData);
+    
+    // Формируем рекомендации, можно адаптировать функцию рекомендаций с учетом ML
+    const recommendation = recommendationService.getComfortRecommendation(sensorData, outdoorData, comfortIndex);
 
     // Создаем запись для сохранения в MongoDB
     const newRecord = new WeatherRecord({
@@ -22,16 +26,16 @@ exports.getSensorData = async (req, res) => {
       outdoor: {
         temperature: parseFloat(outdoorData.temperature),
         humidity: outdoorData.humidity ? parseFloat(outdoorData.humidity) : null
-      }
+      },
+      comfortIndex // Можно добавить поле комфорта в модель WeatherRecord
     });
 
-    // Сохраняем запись в базе
     await newRecord.save();
 
-    // Отправляем данные и рекомендации в ответе
     res.json({
       sensor: sensorData,
       outdoor: outdoorData,
+      comfortIndex,
       recommendation,
       message: 'Данные сохранены в MongoDB'
     });

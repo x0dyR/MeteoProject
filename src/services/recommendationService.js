@@ -1,53 +1,36 @@
 // src/services/recommendationService.js
 
-/**
- * Генерирует рекомендации по комфортным условиям на основе внутренних (sensorData)
- * и внешних (outdoorData) показателей.
- *
- * @param {Object} sensorData - данные от сенсора { temperature, humidity }
- * @param {Object} outdoorData - данные с сайта { temperature, humidity }
- * @returns {String} Рекомендации
- */
-exports.getComfortRecommendation = (sensorData, outdoorData) => {
+exports.getComfortRecommendation = (sensorData, outdoorData, comfortIndex) => {
     const recommendations = [];
-  
-    // Рекомендации по внутренним условиям
+    
+    // Пример: если индекс ниже 0.5, рекомендации более агрессивны
+    if (comfortIndex < 0.5) {
+      recommendations.push("Комфорт низкий, рекомендуется оптимизировать климат в помещении");
+    } else if (comfortIndex < 0.8) {
+      recommendations.push("Комфорт умеренный, можно немного улучшить условия");
+    } else {
+      recommendations.push("Уровень комфорта отличный");
+    }
+    
+    // Дополнительные рекомендации по внутренним и внешним условиям можно оставить
     if (sensorData.temperature < 22) {
-      recommendations.push("Температура в помещении ниже комфортной. Рекомендуется повысить отопление");
+      recommendations.push("Температура в помещении ниже оптимальной, увеличьте отопление");
     } else if (sensorData.temperature > 24) {
-      recommendations.push("Температура в помещении выше комфортной. Рекомендуется снизить температуру");
-    } else {
-      recommendations.push("Температура в помещении комфортная");
+      recommendations.push("Температура в помещении выше оптимальной, уменьшите температуру");
     }
-  
+    
     if (sensorData.humidity < 40) {
-      recommendations.push("Влажность в помещении низкая. Рекомендуется увлажнить воздух");
+      recommendations.push("Влажность в помещении низкая, увлажните воздух");
     } else if (sensorData.humidity > 60) {
-      recommendations.push("Влажность в помещении высокая. Рекомендуется снизить влажность");
-    } else {
-      recommendations.push("Влажность в помещении оптимальная");
+      recommendations.push("Влажность в помещении высокая, уменьшите её");
     }
-  
-    // Рекомендации по внешним условиям
+    
     if (outdoorData.temperature < 10) {
-      recommendations.push("На улице холодно. Одевайтесь тепло");
+      recommendations.push("На улице холодно, одевайтесь теплее");
     } else if (outdoorData.temperature > 30) {
-      recommendations.push("На улице жарко. Не забудьте пить воду и использовать солнцезащитные средства");
-    } else {
-      recommendations.push("Температура на улице комфортная");
+      recommendations.push("На улице жарко, соблюдайте меры предосторожности");
     }
-  
-    // Если влажность снаружи получена
-    if (outdoorData.humidity !== undefined && outdoorData.humidity !== null) {
-      if (outdoorData.humidity < 30) {
-        recommendations.push("Влажность на улице низкая");
-      } else if (outdoorData.humidity > 70) {
-        recommendations.push("Влажность на улице высокая");
-      } else {
-        recommendations.push("Влажность на улице оптимальная");
-      }
-    }
-  
-    return recommendations.join(". ") + ".";
+    
+    return recommendations.join('. ') + '.';
   };
   
