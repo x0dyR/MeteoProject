@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Минимальный сайт</title>
+  <meta charset="UTF-8" />
+  <title>Weather App</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -15,25 +15,34 @@
 <body>
   <h1>Добро пожаловать на Weather App</h1>
   <p>При обращении к этому сайту отображаются данные с датчика, рекомендации и другая информация.</p>
-  
-  <!-- Пример получения данных через API (если добавите endpoint /sensors) -->
+
   <div id="data"></div>
+
   <script>
+    // Делаем запрос на /sensors
     fetch('/sensors')
-      .then(response => response.text())
-      .then(text => {
-        console.log('Response text:', text);
-        try {
-          const data = JSON.parse(text);
-          document.getElementById('data').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-        } catch(e) {
-          document.getElementById('data').innerHTML = `<p>Ошибка парсинга JSON: ${e.message}</p>`;
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Ошибка сервера: ${response.status}`);
         }
+        return response.json();
+      })
+      .then(data => {
+        // Выводим результат на страницу
+        document.getElementById('data').innerHTML = `
+          <h2>Температура (внутренняя): ${data.sensor.temperature}</h2>
+          <h2>Влажность (внутренняя): ${data.sensor.humidity}</h2>
+          <h2>Температура (наружная): ${data.outdoor.temperature}</h2>
+          <h2>Влажность (наружная): ${data.outdoor.humidity}</h2>
+          <h2>Комфорт: ${(data.comfortIndex * 100).toFixed(1)}%</h2>
+          <p>Рекомендации: ${data.recommendation}</p>
+        `;
       })
       .catch(err => {
-        document.getElementById('data').innerHTML = `<p>Ошибка получения данных: ${err}</p>`;
+        document.getElementById('data').innerHTML = `
+          <p>Ошибка получения данных: ${err.message}</p>
+        `;
       });
   </script>
-  
 </body>
 </html>
