@@ -7,40 +7,23 @@ const WeatherRecord = require('../model/weatherRecord');
 
 exports.getSensorData = async (req, res) => {
   try {
-    // Получаем данные с сенсора и с внешнего источника
     const sensorData = await sensorService.readSensorData();
-    console.log('sensorData:', sensorData);
-
     const outdoorData = await outdoorWeatherService.getSensorData();
-    console.log('outdoorData:', outdoorData);
-
-    // Получаем индекс комфорта с помощью ML модели
     const comfortIndex = await mlService.predictComfort(sensorData, outdoorData);
-    console.log('comfortIndex:', comfortIndex);
-
-    // Формируем рекомендации, можно адаптировать функцию рекомендаций с учетом ML
     const recommendation = recommendationService.getComfortRecommendation(sensorData, outdoorData, comfortIndex);
-    console.log('recommendation:', recommendation);
 
     // Создаем запись для сохранения в MongoDB
     const newRecord = new WeatherRecord({
-      sensor: {
-        temperature: parseFloat(sensorData.temperature),
-        humidity: parseFloat(sensorData.humidity)
-      },
-      outdoor: {
-        temperature: parseFloat(outdoorData.temperature),
-        humidity: outdoorData.humidity ? parseFloat(outdoorData.humidity) : null
-      },
+      sensor: sensorData,
+      outdoor: outdoorData,
       comfortIndex
     });
-
     await newRecord.save();
 
     res.json({
       sensor: sensorData,
       outdoor: outdoorData,
-      comfortIndex,
+      comfortIndex: (comfortIndex * 100).toFixed(1) + '%',
       recommendation,
       message: 'Данные сохранены в MongoDB'
     });
