@@ -1,3 +1,4 @@
+// sensorController.js
 const sensorService = require('../services/sensorService');
 const outdoorWeatherService = require('../services/outdoorWeatherService');
 
