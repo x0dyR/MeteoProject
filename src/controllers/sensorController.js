@@ -1,9 +1,15 @@
 const sensorService = require('../services/sensorService');
+const outdoorWeatherService = require('../services/outdoorWeatherService');
 
 exports.getSensorData = async (req, res) => {
   try {
-    const data = await sensorService.readSensorData();
-    res.json(data);
+    const sensorData = await sensorService.readSensorData();
+    const outdoorTemp = await outdoorWeatherService.getOutdoorTemperature();
+    
+    res.json({
+      sensor: sensorData,
+      outdoorTemperature: outdoorTemp
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
