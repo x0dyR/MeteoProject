@@ -1,24 +1,18 @@
 // src/services/sensorService.js
 const sensor = require('node-dht-sensor');
 
+// Альтернативный вариант, если поддерживается sensor.promises.read
 exports.readSensorData = async () => {
-  return new Promise((resolve, reject) => {
-    // Явная инициализация датчика (тип 11 для DHT11, пин 4)
-    const initialized = sensor.initialize(11, 4);
-    console.log('Инициализация датчика:', initialized);
-    if (!initialized) {
-      return reject(new Error('failed to initialize sensor'));
+    if (!sensor.initialize(11, 4)) {
+      throw new Error('failed to initialize sensor');
     }
-    // Задержка 2 секунды для стабилизации датчика
-    setTimeout(() => {
-      sensor.read(11, 4, (err, temperature, humidity) => {
-        if (err) {
-          console.error('Ошибка чтения датчика:', err);
-          return reject(new Error('failed to read sensor: ' + err));
-        }
-        console.log('Данные с датчика:', { temperature, humidity });
-        resolve({ temperature, humidity });
-      });
-    }, 2000);
-  });
-};
+    try {
+      const data = await sensor.promises.read(11, 4);
+      console.log('Данные с датчика (promises):', data);
+      return data;
+    } catch (err) {
+      console.error('Ошибка чтения датчика (promises):', err);
+      throw new Error('failed to read sensor: ' + err);
+    }
+  };
+  
