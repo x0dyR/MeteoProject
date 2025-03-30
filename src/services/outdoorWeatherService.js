@@ -3,19 +3,17 @@ const cheerio = require('cheerio');
 
 exports.getOutdoorTemperature = async () => {
   try {
-    // Выполняем GET-запрос к странице с погодой
     const { data: html } = await axios.get('https://www.gismeteo.kz/weather-almaty-5205/');
-    
-    // Загружаем HTML в cheerio
     const $ = cheerio.load(html);
     
-    // Находим элемент, содержащий температуру.
-    // Пример селектора: '.now-info__value'
-    // Если сайт изменил верстку, придется обновить селектор.
-    const tempElement = $('.now-info__value').first();
-    let tempText = tempElement.text().trim();
+    // Ищем div с классом "weather-value", затем внутри него элемент с классом "temperature-value"
+    const tempText = $('div.weather-value')
+      .find('.temperature-value')
+      .first()
+      .text()
+      .trim();
     
-    // Убираем лишние символы и преобразуем в число
+    // Преобразуем строку в число (убираем лишние символы, если они есть)
     const temperature = parseFloat(tempText.replace(/[^\d\.\-]/g, ''));
     
     if (isNaN(temperature)) {
