@@ -1,47 +1,35 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Weather App</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-      background-color: #f2f2f2;
-      color: #333;
-    }
+    body { font-family: Arial, sans-serif; padding: 2rem; background: #f9f9f9; }
+    .data { background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
   <h1>Добро пожаловать на Weather App</h1>
   <p>При обращении к этому сайту отображаются данные с датчика, рекомендации и другая информация.</p>
-
-  <div id="data"></div>
-
+  <div class="data" id="data">
+    Загрузка данных...
+  </div>
   <script>
-    // Делаем запрос на /sensors
     fetch('/sensors')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Ошибка сервера: ${response.status}`);
-        }
-        return response.json();
-      })
+      .then(response => response.json())
       .then(data => {
-        // Выводим результат на страницу
         document.getElementById('data').innerHTML = `
-          <h2>Температура (внутренняя): ${data.sensor.temperature}</h2>
-          <h2>Влажность (внутренняя): ${data.sensor.humidity}</h2>
-          <h2>Температура (наружная): ${data.outdoor.temperature}</h2>
-          <h2>Влажность (наружная): ${data.outdoor.humidity}</h2>
-          <h2>Комфорт: ${(data.comfortIndex * 100).toFixed(1)}%</h2>
-          <p>Рекомендации: ${data.recommendation}</p>
+          <p><strong>Температура (внутренняя):</strong> ${data.sensor.temperature}</p>
+          <p><strong>Влажность (внутренняя):</strong> ${data.sensor.humidity}</p>
+          <p><strong>Температура (наружная):</strong> ${data.outdoor.temperature}</p>
+          <p><strong>Влажность (наружная):</strong> ${data.outdoor.humidity}</p>
+          <p><strong>Комфорт:</strong> ${data.comfortIndex}</p>
+          <p><strong>Рекомендации:</strong> ${data.recommendation}</p>
+          <p>${data.message}</p>
         `;
       })
       .catch(err => {
-        document.getElementById('data').innerHTML = `
-          <p>Ошибка получения данных: ${err.message}</p>
-        `;
+        document.getElementById('data').innerHTML = `<p>Ошибка получения данных: ${err}</p>`;
       });
   </script>
 </body>
