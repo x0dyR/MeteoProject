@@ -9,20 +9,23 @@ exports.readSensorData = async () => {
     if (!initialized) {
       return reject(new Error('failed to initialize sensor using node-dht-sensor-rp5'));
     }
-    // Задержка для стабилизации датчика, попробуйте увеличить, если требуется
+    // Задержка 2 секунды для стабилизации датчика
     setTimeout(() => {
-      try {
-        const data = sensor.readSync(11, 4);
-        console.log('Данные с датчика:', data);
-        // Проверяем, что данные валидны
-        if (!data.isValid || data.temperature === 0 || data.humidity === 0) {
-          return reject(new Error('invalid sensor data: temp or humidity is undefined or zero'));
+      // Функция read возвращает значения через callback
+      // Обратите внимание, что в node-dht-sensor-rp5 callback может возвращать дополнительные параметры:
+      // (err, temperature, humidity, isValid, errors)
+      sensor.read(11, 4, (err, temperature, humidity, isValid, errors) => {
+        if (err) {
+          console.error('Ошибка чтения датчика:', err);
+          return reject(new Error('failed to read sensor: ' + err));
         }
-        resolve({ temperature: data.temperature, humidity: data.humidity });
-      } catch (err) {
-        console.error('Ошибка чтения датчика (readSync):', err);
-        reject(new Error('failed to read sensor: ' + err));
-      }
+        console.log('Данные с датчика:', { temperature, humidity, isValid, errors });
+        // Если данные невалидны или равны 0 (что может указывать на ошибку)
+        if (!isValid || temperature === 0 || humidity === 0) {
+          return reject(new Error('invalid sensor data: temp or humidity is undefined'));
+        }
+        resolve({ temperature, humidity });
+      });
     }, 2000);
   });
 };
