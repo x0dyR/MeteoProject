@@ -1,0 +1,25 @@
+{
+  "name": "meteoproject",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/x0dyR/MeteoProject.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/x0dyR/MeteoProject/issues"
+  },
+  "homepage": "https://github.com/x0dyR/MeteoProject#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.2",
+    "ollama": "^0.5.14",
+    "onoff": "^6.0.3"
+  }
+}
