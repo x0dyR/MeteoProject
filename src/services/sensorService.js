@@ -26,6 +26,6 @@ exports.readSensorData = async () => {
         }
         resolve({ temperature, humidity });
       });
-    }, 2000);
+    }, 5000);
   });
 };
