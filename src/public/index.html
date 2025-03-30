@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Минимальный сайт</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f2f2f2;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Добро пожаловать на Weather App</h1>
+  <p>При обращении к этому сайту отображаются данные с датчика, рекомендации и другая информация.</p>
+  
+  <!-- Пример получения данных через API (если добавите endpoint /sensors) -->
+  <div id="data"></div>
+  <script>
+    fetch('/sensors')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('data').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      })
+      .catch(err => {
+        document.getElementById('data').innerHTML = `<p>Ошибка получения данных: ${err}</p>`;
+      });
+  </script>
+</body>
+</html>
