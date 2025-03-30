@@ -1,33 +1,28 @@
-const { Chip } = require('libgpiod2');
+// src/services/sensorService.js
+const sensor = require('node-dht-sensor2');
 
-/**
- * Читает данные с датчика через libgpiod2.
- * Обратите внимание: для DHT11/DHT22 этот способ, скорее всего, не сработает,
- * так как требуется реализовать сложный одно-проводный протокол.
- * Пример ниже показывает, как открыть чип и считать значение линии.
- */
 exports.readSensorData = async () => {
   return new Promise((resolve, reject) => {
     try {
-      // Открываем первый чип GPIO (обычно /dev/gpiochip0)
-      const chip = new Chip(0);
-      // Получаем линию с номером 4 (GPIO4, согласно нумерации чипа)
-      const line = chip.getLine(4);
-      
-      // Читаем значение линии (0 или 1)
-      const value = line.getValue();
-      console.log('Значение линии (GPIO4):', value);
-      
-      // Если ваш датчик выдаёт данные через этот цифровой вход,
-      // здесь необходимо преобразовать значение линии в показания температуры и влажности.
-      // Ниже приведён пример возврата статичных данных.
-      resolve({
-        temperature: 23.5,  // замените на получение реальных данных, если возможно
-        humidity: 45        // замените на получение реальных данных, если возможно
-      });
-    } catch (err) {
-      console.error('Ошибка чтения датчика через libgpiod2:', err);
-      reject(new Error('failed to read sensor using libgpiod2: ' + err));
+      // Инициализация датчика: 11 для DHT11, пин 4 (проверьте, что это соответствует вашему подключению)
+      const initialized = sensor.initialize(11, 4);
+      console.log('Инициализация датчика (node-dht-sensor2):', initialized);
+      if (!initialized) {
+        return reject(new Error('failed to initialize sensor using node-dht-sensor2'));
+      }
+      // Небольшая задержка может помочь датчику стабилизироваться
+      setTimeout(() => {
+        sensor.read(11, 4, (err, temperature, humidity) => {
+          if (err) {
+            console.error('Ошибка чтения датчика:', err);
+            return reject(new Error('failed to read sensor: ' + err));
+          }
+          console.log('Данные с датчика:', { temperature, humidity });
+          resolve({ temperature, humidity });
+        });
+      }, 2000);
+    } catch (e) {
+      reject(e);
     }
   });
 };
