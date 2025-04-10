@@ -65,19 +65,7 @@
   <!-- Основная информация -->
   <div class="data" id="data">
     Загрузка данных...
-  </div>
-  
-  <!-- Секция для газовых датчиков -->
-  <div class="data" id="gasData">
-    <h3>Данные газовых датчиков (концентрация)</h3>
-    <p>MQ9 (LPG): <span id="mq9LPG"></span> ppm</p>
-    <p>MQ9 (Methane): <span id="mq9Methane"></span> ppm</p>
-    <p>MQ9 (CO): <span id="mq9CO"></span> ppm</p>
-    <p>MQ135 (Benzene): <span id="mq135Benzene"></span> ppm</p>
-    <p>MQ135 (Alcohol): <span id="mq135Alcohol"></span> ppm</p>
-    <p>MQ135 (Smoke): <span id="mq135Smoke"></span> ppm</p>
-  </div>
-  
+  </div> 
   <!-- Группа для температур и влажности -->
   <div class="sensor-group" id="tempHumGroup">
     <h2>Температура и влажность</h2>
@@ -130,21 +118,7 @@
             <p><strong>Влажность (наружная):</strong> ${data.outdoor.humidity}</p>
             <p><strong>Комфорт:</strong> ${data.comfortIndex}</p>
             <p><strong>Рекомендации:</strong> ${data.recommendation}</p>
-          `;
-  
-          document.getElementById('mq9LPG').textContent = 
-            data.sensor.mq9 && data.sensor.mq9.LPG_ppm !== undefined ? data.sensor.mq9.LPG_ppm : 'нет данных';
-          document.getElementById('mq9Methane').textContent = 
-            data.sensor.mq9 && data.sensor.mq9.Methane_ppm !== undefined ? data.sensor.mq9.Methane_ppm : 'нет данных';
-          document.getElementById('mq9CO').textContent = 
-            data.sensor.mq9 && data.sensor.mq9.CO_ppm !== undefined ? data.sensor.mq9.CO_ppm : 'нет данных';
-          document.getElementById('mq135Benzene').textContent = 
-            data.sensor.mq135 && data.sensor.mq135.Benzene_ppm !== undefined ? data.sensor.mq135.Benzene_ppm : 'нет данных';
-          document.getElementById('mq135Alcohol').textContent = 
-            data.sensor.mq135 && data.sensor.mq135.Alcohol_ppm !== undefined ? data.sensor.mq135.Alcohol_ppm : 'нет данных';
-          document.getElementById('mq135Smoke').textContent = 
-            data.sensor.mq135 && data.sensor.mq135.Smoke_ppm !== undefined ? data.sensor.mq135.Smoke_ppm : 'нет данных';
-  
+          `;           
           updateCharts(data);
         })
         .catch(err => {
