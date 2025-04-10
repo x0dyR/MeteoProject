@@ -1,7 +1,7 @@
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 
-// Имя последовательного порта, например, /dev/ttyUSB0 (проверьте командой ls /dev/ttyACM* или ls /dev/ttyUSB*)
+// Имя последовательного порта, например, /dev/ttyUSB0 (проверьте с помощью ls /dev/ttyACM* или ls /dev/ttyUSB*)
 const portName = '/dev/ttyUSB0';
 
 const port = new SerialPort({
@@ -41,6 +41,23 @@ port.on('error', (err) => {
   console.error('Ошибка последовательного порта:', err);
 });
 
+/**
+ * Функция отправки команды в Arduino.
+ * Команда будет отправлена с символом новой строки.
+ */
+function sendCommand(command) {
+  return new Promise((resolve, reject) => {
+    port.write(command + "\n", (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 module.exports = {
   getLatestData: () => latestData,
+  sendCommand,
 };
