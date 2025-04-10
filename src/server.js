@@ -26,31 +26,30 @@ mongoose.connect(process.env.MONGO_URI, {
 app.get('/sensors', sensorController.getSensorData);
 
 // Маршрут для обновления комфортных значений
-app.post('/setComfortValues', (req, res) => {
-  const idealIndoorTemp = parseFloat(req.body.idealIndoorTemp);
-  const idealIndoorHum = parseFloat(req.body.idealIndoorHum);
-  const idealOutdoorTemp = parseFloat(req.body.idealOutdoorTemp);
-  const idealOutdoorHum = parseFloat(req.body.idealOutdoorHum);
-  
+app.post('/setComfortValues', async (req, res) => {
+  const { idealIndoorTemp, idealIndoorHum, idealOutdoorTemp, idealOutdoorHum } = req.body;
   if (
-    !isNaN(idealIndoorTemp) &&
-    !isNaN(idealIndoorHum) &&
-    !isNaN(idealOutdoorTemp) &&
-    !isNaN(idealOutdoorHum)
+    typeof idealIndoorTemp !== 'number' ||
+    typeof idealIndoorHum !== 'number' ||
+    typeof idealOutdoorTemp !== 'number' ||
+    typeof idealOutdoorHum !== 'number'
   ) {
-    adviceService.updateComfortableValues({
+    return res.status(400).json({ message: 'Неверный формат данных' });
+  }
+  try {
+    const updatedSetting = await adviceService.updateComfortableValues({
       idealIndoorTemp,
       idealIndoorHum,
       idealOutdoorTemp,
       idealOutdoorHum
     });
-    res.json({ message: 'Новые комфортные значения установлены' });
-  } else {
-    res.status(400).json({ message: 'Неверный формат данных' });
+    res.json({ message: 'Новые комфортные значения установлены', setting: updatedSetting });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка обновления комфортных значений' });
   }
 });
 
-// Добавляем маршрут для страницы настройки комфорта
+// Добавляем обработчик для маршрута /comfort, чтобы отдавать страницу с настройками комфорта
 app.get('/comfort', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'comfort.html'));
 });

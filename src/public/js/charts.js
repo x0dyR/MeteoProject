@@ -1,6 +1,6 @@
 // public/js/charts.js
 
-// Ключи для хранения истории в localStorage
+// Ключи для хранения в localStorage
 const LS_KEYS = {
   labels: 'chart_labels',
   indoorTemp: 'indoorTempData',
@@ -15,21 +15,62 @@ const LS_KEYS = {
   mq135Smoke: 'mq135SmokeData'
 };
 
-// Количество точек истории (например, за 24 часа)
+// История для графиков (максимум 24 точки – по одной в час)
 const historyLength = 24;
 let labels = [];
 let indoorTempData = [];
 let indoorHumData = [];
 let outdoorTempData = [];
 let outdoorHumData = [];
+
+// Если графики газов нужны – аналогично
 let mq9LPGData = [];
 let mq9MethaneData = [];
 let mq9COData = [];
 let mq135BenzeneData = [];
 let mq135AlcoholData = [];
-let mq135SmokeData = [];
+let mq135SmokeData = [];// Функция обновления графиков – использует глобальные переменные
+function updateCharts() {
+  // Если графики еще не созданы, то функция может просто завершаться.
+  if (!indoorTempChart || !indoorHumChart || !outdoorTempChart || !outdoorHumChart || !mq9Chart || !mq135Chart) {
+    console.warn("Графики не инициализированы.");
+    return;
+  }
 
-// Функции сохранения и загрузки истории
+  // Обновляем графики температуры/влажности
+  indoorTempChart.data.labels = labels;
+  indoorTempChart.data.datasets[0].data = indoorTempData;
+  indoorTempChart.update();
+
+  indoorHumChart.data.labels = labels;
+  indoorHumChart.data.datasets[0].data = indoorHumData;
+  indoorHumChart.update();
+
+  outdoorTempChart.data.labels = labels;
+  outdoorTempChart.data.datasets[0].data = outdoorTempData;
+  outdoorTempChart.update();
+
+  outdoorHumChart.data.labels = labels;
+  outdoorHumChart.data.datasets[0].data = outdoorHumData;
+  outdoorHumChart.update();
+
+  // Обновляем графики для газовых датчиков MQ9
+  mq9Chart.data.labels = labels;
+  mq9Chart.data.datasets[0].data = mq9LPGData;
+  mq9Chart.data.datasets[1].data = mq9MethaneData;
+  mq9Chart.data.datasets[2].data = mq9COData;
+  mq9Chart.update();
+
+  // Обновляем графики для газовых датчиков MQ135
+  mq135Chart.data.labels = labels;
+  mq135Chart.data.datasets[0].data = mq135BenzeneData;
+  mq135Chart.data.datasets[1].data = mq135AlcoholData;
+  mq135Chart.data.datasets[2].data = mq135SmokeData;
+  mq135Chart.update();
+}
+
+
+// Функции для сохранения и загрузки данных из localStorage
 function saveHistory() {
   localStorage.setItem(LS_KEYS.labels, JSON.stringify(labels));
   localStorage.setItem(LS_KEYS.indoorTemp, JSON.stringify(indoorTempData));
@@ -58,14 +99,37 @@ function loadHistory() {
   mq135SmokeData = JSON.parse(localStorage.getItem(LS_KEYS.mq135Smoke)) || [];
 }
 
-// Функция обновления графиков (пример реализации)
-function updateCharts(data) {
-  // Добавляем текущую метку времени (например, в формате HH:mm)
+// Пример функции агрегации данных – здесь можно добавить логику, если хотите агрегировать данные по часам
+function addNewData(data) {
+  // Генерируем метку времени (например, только время в формате HH:mm)
   const now = new Date();
-  const label = now.toLocaleTimeString();
+  const label = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   labels.push(label);
   if (labels.length > historyLength) {
     labels.shift();
+  }
+
+  // Предполагается, что data имеет структуру:
+  // { sensor: { temperature, humidity, mq9, mq135 }, outdoor: { temperature, humidity } }
+  indoorTempData.push(data.sensor.temperature);
+  indoorHumData.push(data.sensor.humidity);
+  outdoorTempData.push(data.outdoor.temperature);
+  outdoorHumData.push(data.outdoor.humidity);
+
+  // Для газов – если они присутствуют. Если концентрация рассчитывается сервером, здесь просто сохраняем их значения.
+  if (data.sensor.mq9) {
+    mq9LPGData.push(data.sensor.mq9.LPG_ppm || null);
+    mq9MethaneData.push(data.sensor.mq9.Methane_ppm || null);
+    mq9COData.push(data.sensor.mq9.CO_ppm || null);
+  }
+  if (data.sensor.mq135) {
+    mq135BenzeneData.push(data.sensor.mq135.Benzene_ppm || null);
+    mq135AlcoholData.push(data.sensor.mq135.Alcohol_ppm || null);
+    mq135SmokeData.push(data.sensor.mq135.Smoke_ppm || null);
+  }
+
+  // Ограничиваем длину истории
+  if (indoorTempData.length > historyLength) {
     indoorTempData.shift();
     indoorHumData.shift();
     outdoorTempData.shift();
@@ -77,73 +141,20 @@ function updateCharts(data) {
     mq135AlcoholData.shift();
     mq135SmokeData.shift();
   }
-  
-  // Добавляем новые данные из полученного объекта
-  indoorTempData.push(data.sensor.temperature);
-  indoorHumData.push(data.sensor.humidity);
-  outdoorTempData.push(data.outdoor.temperature);
-  outdoorHumData.push(data.outdoor.humidity);
-  
-  // Если данные газовых датчиков присутствуют, добавляем их (пример)
-  if (data.sensor.mq9) {
-    mq9LPGData.push(data.sensor.mq9.LPG_ppm || null);
-    mq9MethaneData.push(data.sensor.mq9.Methane_ppm || null);
-    mq9COData.push(data.sensor.mq9.CO_ppm || null);
-  }
-  if (data.sensor.mq135) {
-    mq135BenzeneData.push(data.sensor.mq135.Benzene_ppm || null);
-    mq135AlcoholData.push(data.sensor.mq135.Alcohol_ppm || null);
-    mq135SmokeData.push(data.sensor.mq135.Smoke_ppm || null);
-  }
-  
-  // Сохраняем историю
+
+  // Сохраняем обновлённые данные в localStorage
   saveHistory();
-  
-  // Обновляем каждый график
-  if (indoorTempChart) {
-    indoorTempChart.data.labels = labels;
-    indoorTempChart.data.datasets[0].data = indoorTempData;
-    indoorTempChart.update();
-  }
-  if (indoorHumChart) {
-    indoorHumChart.data.labels = labels;
-    indoorHumChart.data.datasets[0].data = indoorHumData;
-    indoorHumChart.update();
-  }
-  if (outdoorTempChart) {
-    outdoorTempChart.data.labels = labels;
-    outdoorTempChart.data.datasets[0].data = outdoorTempData;
-    outdoorTempChart.update();
-  }
-  if (outdoorHumChart) {
-    outdoorHumChart.data.labels = labels;
-    outdoorHumChart.data.datasets[0].data = outdoorHumData;
-    outdoorHumChart.update();
-  }
-  if (mq9Chart) {
-    mq9Chart.data.labels = labels;
-    mq9Chart.data.datasets[0].data = mq9LPGData;
-    mq9Chart.data.datasets[1].data = mq9MethaneData;
-    mq9Chart.data.datasets[2].data = mq9COData;
-    mq9Chart.update();
-  }
-  if (mq135Chart) {
-    mq135Chart.data.labels = labels;
-    mq135Chart.data.datasets[0].data = mq135BenzeneData;
-    mq135Chart.data.datasets[1].data = mq135AlcoholData;
-    mq135Chart.data.datasets[2].data = mq135SmokeData;
-    mq135Chart.update();
-  }
 }
 
 // Глобальные переменные для графиков
 let indoorTempChart, indoorHumChart, outdoorTempChart, outdoorHumChart;
 let mq9Chart, mq135Chart;
 
-// После загрузки документа создаём графики
 document.addEventListener('DOMContentLoaded', () => {
+  // При загрузке страницы, загружаем сохранённые данные
   loadHistory();
 
+  // Создаем графики для температуры и влажности
   indoorTempChart = new Chart(document.getElementById('indoorTempChart').getContext('2d'), {
     type: 'line',
     data: {
@@ -161,7 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
       scales: {
         x: {
           type: 'time',
-          time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } },
+          time: {
+            unit: 'hour',
+            tooltipFormat: 'HH:mm',
+            displayFormats: { hour: 'HH:mm' }
+          },
           title: { display: true, text: 'Время' }
         },
         y: { title: { display: true, text: 'Температура (°C)' } }
@@ -185,11 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     options: {
       scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } },
-          title: { display: true, text: 'Время' }
-        },
+        x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } }, title: { display: true, text: 'Время' } },
         y: { title: { display: true, text: 'Влажность (%)' } }
       },
       animation: { duration: 0 }
@@ -211,11 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     options: {
       scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } },
-          title: { display: true, text: 'Время' }
-        },
+        x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } }, title: { display: true, text: 'Время' } },
         y: { title: { display: true, text: 'Температура (°C)' } }
       },
       animation: { duration: 0 }
@@ -237,11 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     options: {
       scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } },
-          title: { display: true, text: 'Время' }
-        },
+        x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } }, title: { display: true, text: 'Время' } },
         y: { title: { display: true, text: 'Влажность (%)' } }
       },
       animation: { duration: 0 }
@@ -281,11 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     options: {
       scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } },
-          title: { display: true, text: 'Время' }
-        },
+        x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } }, title: { display: true, text: 'Время' } },
         y: { title: { display: true, text: 'Концентрация, ppm' } }
       },
       animation: { duration: 0 }
@@ -325,29 +324,53 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     options: {
       scales: {
-        x: {
-          type: 'time',
-          time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } },
-          title: { display: true, text: 'Время' }
-        },
+        x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'HH:mm', displayFormats: { hour: 'HH:mm' } }, title: { display: true, text: 'Время' } },
         y: { title: { display: true, text: 'Концентрация, ppm' } }
       },
       animation: { duration: 0 }
     }
   });
 
-  // Запускаем обновление данных с сервера каждые 5 секунд
+  // Начальное обновление данных с сервера
   updateData();
   setInterval(updateData, 5000);
 });
 
-// Функция для обновления данных с сервера и агрегации, затем вызов updateCharts
+// Функция, которая вызывается при каждом обновлении данных с сервера
 function updateData() {
   fetch('/sensors')
     .then(response => response.json())
     .then(data => {
-      // Здесь можно проводить агрегацию данных, если требуется – например, накапливать данные за час
-      updateCharts(data);
+      // Добавляем новые данные в буфер и сохраняем их
+      addNewData(data);
+      // Обновляем графики с новыми данными
+      indoorTempChart.data.labels = labels;
+      indoorTempChart.data.datasets[0].data = indoorTempData;
+      indoorTempChart.update();
+
+      indoorHumChart.data.labels = labels;
+      indoorHumChart.data.datasets[0].data = indoorHumData;
+      indoorHumChart.update();
+
+      outdoorTempChart.data.labels = labels;
+      outdoorTempChart.data.datasets[0].data = outdoorTempData;
+      outdoorTempChart.update();
+
+      outdoorHumChart.data.labels = labels;
+      outdoorHumChart.data.datasets[0].data = outdoorHumData;
+      outdoorHumChart.update();
+
+      mq9Chart.data.labels = labels;
+      mq9Chart.data.datasets[0].data = mq9LPGData;
+      mq9Chart.data.datasets[1].data = mq9MethaneData;
+      mq9Chart.data.datasets[2].data = mq9COData;
+      mq9Chart.update();
+
+      mq135Chart.data.labels = labels;
+      mq135Chart.data.datasets[0].data = mq135BenzeneData;
+      mq135Chart.data.datasets[1].data = mq135AlcoholData;
+      mq135Chart.data.datasets[2].data = mq135SmokeData;
+      mq135Chart.update();
     })
     .catch(err => {
       console.error('Ошибка получения данных с сервера:', err);
