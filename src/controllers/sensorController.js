@@ -1,18 +1,20 @@
 // src/controllers/sensorController.js
 const sensorService = require('../services/sensorService');
 const outdoorWeatherService = require('../services/outdoorWeatherService');
-const recommendationService = require('../services/recommendationService');
 const mlService = require('../services/mlService');
 const WeatherRecord = require('../model/weatherRecord');
+const adviceService = require('../services/adviceService');
 
 exports.getSensorData = async (req, res) => {
   try {
     const sensorData = await sensorService.readSensorData();
     const outdoorData = await outdoorWeatherService.getSensorData();
+    // Предсказываем индекс комфорта с помощью ML
     const comfortIndex = await mlService.predictComfort(sensorData, outdoorData);
-    const recommendation = recommendationService.getComfortRecommendation(sensorData, outdoorData, comfortIndex);
+    // Получаем рекомендации с учетом установленных комфортных значений
+    const recommendation = adviceService.getImprovementAdvice(sensorData, outdoorData, comfortIndex);
 
-    // Создаем запись для сохранения в MongoDB
+    // Создаем запись для сохранения в MongoDB (если используется)
     const newRecord = new WeatherRecord({
       sensor: sensorData,
       outdoor: outdoorData,
